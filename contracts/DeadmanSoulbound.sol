@@ -11,7 +11,11 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor() ERC721('DeadmanSoulbound', 'DSB') {}
+    uint256 public timeOfDeath;
+
+    constructor() ERC721('DeadmanSoulbound', 'DSB') {
+        timeOfDeath = block.timestamp + 365 days;
+    }
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(ERC721) {
         require(from == address(0), 'Token not transferable');
