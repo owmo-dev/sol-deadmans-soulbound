@@ -6,7 +6,10 @@ import {assert, expect} from 'chai';
 
 const TEST_DAYS_TO_LIVE = 365;
 
+const ERR_ONLY_OWNER = 'Ownable: caller is not the owner';
 const ERR_ONLY_ALIVE = 'DeadmanSoulbound: contract is dead';
+const ERR_ONLY_DEAD = 'DeadmanSoulbound: contract must be dead';
+const ERR_NOT_YET = 'DeadmanSoulbound: not yet Time of Death';
 
 describe('DeadmansSoulbound', async function () {
     let deployer: SignerWithAddress;
@@ -43,7 +46,7 @@ describe('DeadmansSoulbound', async function () {
     describe('When declaring the contract Dead', async function () {
         describe('Before the Time of Death has been reached', async function () {
             it('should not permit the declaration', async function () {
-                await expect(contract.declareDead()).to.be.revertedWith('Time of Death not yet happened');
+                await expect(contract.declareDead()).to.be.revertedWith(ERR_NOT_YET);
             });
         });
 
@@ -68,7 +71,7 @@ describe('DeadmansSoulbound', async function () {
 
     describe('When extending the Time of Death', async function () {
         it('should revert for anyone other than the contract owner', async function () {
-            await expect(contract.connect(account1).extendLife()).to.be.revertedWith('Ownable: caller is not the owner');
+            await expect(contract.connect(account1).extendLife()).to.be.revertedWith(ERR_ONLY_OWNER);
         });
 
         describe('When the isDead flag has not yet been declared', async function () {
