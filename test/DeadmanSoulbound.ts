@@ -87,23 +87,23 @@ describe('DeadmansSoulbound', async function () {
             const newIncrementBN = ethers.BigNumber.from(newIncrement);
             await expect(contract.connect(account1).setIncrement(newIncrementBN)).to.be.revertedWith(ERR_ONLY_OWNER);
         });
-    });
 
-    describe('Before the Time of Death has been reached', async function () {
-        it('should not allow the contract to be declared dead', async function () {
-            await expect(contract.declareDead()).to.be.revertedWith(ERR_NOT_YET);
-        });
-    });
-
-    describe('After the Time of Death has been reached', async function () {
-        beforeEach(async function () {
-            mineToAfterDeathDate();
+        describe('Before the Time of Death has been reached', async function () {
+            it('should not allow the contract to be declared dead', async function () {
+                await expect(contract.declareDead()).to.be.revertedWith(ERR_NOT_YET);
+            });
         });
 
-        it('should allow the contract to be declared dead', async function () {
-            await expect(contract.declareDead()).to.not.reverted;
-            const isDead = await contract.isDead();
-            expect(isDead).to.be.true;
+        describe('After the Time of Death has been reached', async function () {
+            beforeEach(async function () {
+                mineToAfterDeathDate();
+            });
+
+            it('should allow the contract to be declared dead', async function () {
+                await expect(contract.declareDead()).to.not.reverted;
+                const isDead = await contract.isDead();
+                expect(isDead).to.be.true;
+            });
         });
     });
 
