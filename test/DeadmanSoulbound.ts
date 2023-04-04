@@ -8,6 +8,8 @@ import {BigNumber} from 'ethers';
 const TEST_INC_DAYS = 42;
 const TEST_INC_SECONDS = TEST_INC_DAYS * secondsInDay;
 
+const TEST_IPFS_URI = 'ipfs://bafkreiciloo7eglkegfp6axttuo6nc24teqpwm3edjnfkur5zd6bnu7npa';
+
 const ERR_ONLY_OWNER = 'Ownable: caller is not the owner';
 const ERR_ONLY_ALIVE = 'DeadmanSoulbound: contract is dead';
 const ERR_ONLY_DEAD = 'DeadmanSoulbound: contract must be dead';
