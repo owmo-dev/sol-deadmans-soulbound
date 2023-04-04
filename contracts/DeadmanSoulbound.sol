@@ -19,14 +19,17 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
         timeOfDeath = block.timestamp + 365 days;
     }
 
-    function declareDead() public {
+    modifier onlyAlive() {
+        require(!isDead, 'DeadmanSoulbound: contract is dead');
+        _;
+    }
+
+    function declareDead() public onlyAlive {
         require(block.timestamp >= timeOfDeath, 'Time of Death not yet happened');
-        require(!isDead, 'Contract is Dead');
         isDead = true;
     }
 
-    function extendLife() public onlyOwner {
-        require(!isDead, 'Contract is Dead');
+    function extendLife() public onlyOwner onlyAlive {
         timeOfDeath = block.timestamp + 365 days;
     }
 

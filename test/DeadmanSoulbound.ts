@@ -6,6 +6,8 @@ import {assert, expect} from 'chai';
 
 const TEST_DAYS_TO_LIVE = 365;
 
+const ERR_ONLY_ALIVE = 'DeadmanSoulbound: contract is dead';
+
 describe('DeadmansSoulbound', async function () {
     let deployer: SignerWithAddress;
     let account1: SignerWithAddress;
@@ -59,7 +61,7 @@ describe('DeadmansSoulbound', async function () {
 
             it('should revert if the contrat has already been declared Dead', async function () {
                 await expect(contract.declareDead()).to.not.reverted;
-                await expect(contract.declareDead()).to.be.revertedWith('Contract is Dead');
+                await expect(contract.declareDead()).to.be.revertedWith(ERR_ONLY_ALIVE);
             });
         });
     });
@@ -86,7 +88,7 @@ describe('DeadmansSoulbound', async function () {
                 await ethers.provider.send('evm_increaseTime', [86400 * TEST_DAYS_TO_LIVE]);
                 await ethers.provider.send('evm_mine', []);
                 await contract.declareDead();
-                await expect(contract.extendLife()).to.be.revertedWith('Contract is Dead');
+                await expect(contract.extendLife()).to.be.revertedWith(ERR_ONLY_ALIVE);
             });
         });
     });
