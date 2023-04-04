@@ -26,7 +26,7 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(ERC721) {
-        require(from == address(0), 'Token not transferable');
+        require(isDead, 'Cannot transfer until contract is Dead');
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
