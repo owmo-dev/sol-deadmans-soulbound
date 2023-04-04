@@ -13,6 +13,11 @@ const ERR_ONLY_ALIVE = 'DeadmanSoulbound: contract is dead';
 const ERR_ONLY_DEAD = 'DeadmanSoulbound: contract must be dead';
 const ERR_NOT_YET = 'DeadmanSoulbound: not yet Time of Death';
 
+async function mineToAfterDeathDate() {
+    await ethers.provider.send('evm_increaseTime', [86400 * TEST_INC_DAYS]);
+    await ethers.provider.send('evm_mine', []);
+}
+
 describe('DeadmansSoulbound', async function () {
     let deployer: SignerWithAddress;
     let account1: SignerWithAddress;
@@ -33,8 +38,13 @@ describe('DeadmansSoulbound', async function () {
         deployDate = new Date(currentBlock.timestamp * 1000);
     });
 
-    describe('When the DeadmanSoulbound contract is deployed', async function () {
-        it('should set Time of Death to increment time from deployment', async function () {
+    describe('When the contract is deployed', async function () {
+        it('should set time Increment', async function () {
+            const incrementTime = await contract.timeIncrement();
+            expect(incrementTime).to.eq(TEST_INC_SECONDS);
+        });
+
+        it('should set time of death to equal block timestamp plus time increment', async function () {
             const timeOfDeath = await contract.timeOfDeath();
             const timeOfDeathDate = new Date(timeOfDeath.toNumber() * 1000);
             const deployDatePlusIncrement = addSeconds(deployDate, TEST_INC_SECONDS);
@@ -45,63 +55,74 @@ describe('DeadmansSoulbound', async function () {
             const isDead = await contract.isDead();
             expect(isDead).to.be.false;
         });
-
-        it('should set time Increment', async function () {
-            const incrementTime = await contract.timeIncrement();
-            expect(incrementTime).to.eq(TEST_INC_SECONDS);
-        });
     });
 
-    describe('When declaring the contract Dead', async function () {
-        describe('Before the Time of Death has been reached', async function () {
-            it('should not permit the declaration', async function () {
-                await expect(contract.declareDead()).to.be.revertedWith(ERR_NOT_YET);
-            });
+    describe('While the contract is alive', async function () {
+        it('should allow contract owner to extend life to equal the block timestamp plus increment', async function () {
+            await contract.extendLife();
+            const currentBlock = await ethers.provider.getBlock('latest');
+            const blockDate = new Date(currentBlock.timestamp * 1000);
+            const timeOfDeath = await contract.timeOfDeath();
+            const timeOfDeathDate = new Date(timeOfDeath.toNumber() * 1000);
+            const blockDatePlusIncrement = addSeconds(blockDate, TEST_INC_SECONDS);
+            assert.deepEqual(timeOfDeathDate, blockDatePlusIncrement);
         });
 
-        describe('After the Time of Death has been reached', async function () {
-            beforeEach(async function () {
-                await ethers.provider.send('evm_increaseTime', [86400 * TEST_INC_DAYS]);
-                await ethers.provider.send('evm_mine', []);
-            });
-
-            it('should permit the declaration', async function () {
-                await expect(contract.declareDead()).to.not.reverted;
-                const isDead = await contract.isDead();
-                expect(isDead).to.be.true;
-            });
-
-            it('should revert if the contrat has already been declared Dead', async function () {
-                await expect(contract.declareDead()).to.not.reverted;
-                await expect(contract.declareDead()).to.be.revertedWith(ERR_ONLY_ALIVE);
-            });
-        });
-    });
-
-    describe('When extending the Time of Death', async function () {
-        it('should revert for anyone other than the contract owner', async function () {
+        it('should revert extend life calls from anyone other than owner', async function () {
             await expect(contract.connect(account1).extendLife()).to.be.revertedWith(ERR_ONLY_OWNER);
         });
 
-        describe('When the isDead flag has not yet been declared', async function () {
-            it('should set Time of Death to increment time from block timestamp', async function () {
-                await contract.extendLife();
-                const currentBlock = await ethers.provider.getBlock('latest');
-                const blockDate = new Date(currentBlock.timestamp * 1000);
-                const timeOfDeath = await contract.timeOfDeath();
-                const timeOfDeathDate = new Date(timeOfDeath.toNumber() * 1000);
-                const blockDatePlusIncrement = addSeconds(blockDate, TEST_INC_SECONDS);
-                assert.deepEqual(timeOfDeathDate, blockDatePlusIncrement);
-            });
+        it('should allow contract owner to set a new increment', async function () {
+            const newIncrement = 365 * secondsInDay;
+            const newIncrementBN = ethers.BigNumber.from(newIncrement);
+            await contract.setIncrement(newIncrementBN);
+            const increment = await contract.timeIncrement();
+            expect(increment).to.eq(newIncrementBN);
         });
 
-        describe('When the isDead flag has been declared', async function () {
-            it('should revert because once declared Dead, the contract canont be revived', async function () {
-                await ethers.provider.send('evm_increaseTime', [86400 * TEST_INC_DAYS]);
-                await ethers.provider.send('evm_mine', []);
-                await contract.declareDead();
-                await expect(contract.extendLife()).to.be.revertedWith(ERR_ONLY_ALIVE);
-            });
+        it('should revert new increment calls from anyone other than owner', async function () {
+            const newIncrement = 365 * secondsInDay;
+            const newIncrementBN = ethers.BigNumber.from(newIncrement);
+            await expect(contract.connect(account1).setIncrement(newIncrementBN)).to.be.revertedWith(ERR_ONLY_OWNER);
+        });
+    });
+
+    describe('Before the Time of Death has been reached', async function () {
+        it('should not allow the contract to be declared dead', async function () {
+            await expect(contract.declareDead()).to.be.revertedWith(ERR_NOT_YET);
+        });
+    });
+
+    describe('After the Time of Death has been reached', async function () {
+        beforeEach(async function () {
+            mineToAfterDeathDate();
+        });
+
+        it('should allow the contract to be declared dead', async function () {
+            await expect(contract.declareDead()).to.not.reverted;
+            const isDead = await contract.isDead();
+            expect(isDead).to.be.true;
+        });
+    });
+
+    describe('After the Contract has been declared Dead', async function () {
+        beforeEach(async function () {
+            mineToAfterDeathDate();
+            await contract.declareDead();
+        });
+
+        it('should revert if the contract has already been declared Dead', async function () {
+            await expect(contract.declareDead()).to.be.revertedWith(ERR_ONLY_ALIVE);
+        });
+
+        it('should revert extend life calls', async function () {
+            await expect(contract.extendLife()).to.be.revertedWith(ERR_ONLY_ALIVE);
+        });
+
+        it('should revert set increment calls', async function () {
+            const newIncrement = 365 * secondsInDay;
+            const newIncrementBN = ethers.BigNumber.from(newIncrement);
+            await expect(contract.setIncrement(newIncrementBN)).to.be.revertedWith(ERR_ONLY_ALIVE);
         });
     });
 });
