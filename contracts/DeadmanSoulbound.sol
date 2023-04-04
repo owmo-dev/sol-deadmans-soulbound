@@ -11,9 +11,11 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
 
     Counters.Counter private _tokenIdCounter;
 
+    bool public isDead;
     uint256 public timeOfDeath;
 
     constructor() ERC721('DeadmanSoulbound', 'DSB') {
+        isDead = false;
         timeOfDeath = block.timestamp + 365 days;
     }
 

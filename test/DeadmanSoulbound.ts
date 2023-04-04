@@ -2,7 +2,7 @@ import {addDays} from 'date-fns';
 import {ethers} from 'hardhat';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 import {DeadmanSoulbound, DeadmanSoulbound__factory} from '../typechain-types';
-import {assert} from 'chai';
+import {assert, expect} from 'chai';
 
 const TEST_TOKEN_PRICE = 0.1;
 const TEST_DAYS_TO_LIVE = 365;
@@ -33,8 +33,9 @@ describe('DeadmansSoulbound', async function () {
             assert.deepEqual(timeOfDeathDate, deployDatePlusOneYear);
         });
 
-        it('should have an "Alive" state', async function () {
-            throw Error('Not implemented');
+        it('should set isDead to false, indicating contract owner is alive', async function () {
+            const isDead = await contract.isDead();
+            expect(isDead).to.be.false;
         });
     });
 });
