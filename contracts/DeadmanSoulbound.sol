@@ -19,6 +19,12 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
         timeOfDeath = block.timestamp + 365 days;
     }
 
+    function declareDead() public {
+        require(block.timestamp >= timeOfDeath, 'Time of Death not yet happened');
+        require(!isDead, 'Contract is already Dead');
+        isDead = true;
+    }
+
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(ERC721) {
         require(from == address(0), 'Token not transferable');
         super._beforeTokenTransfer(from, to, tokenId, batchSize);

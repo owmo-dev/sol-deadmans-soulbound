@@ -15,7 +15,7 @@ describe('DeadmansSoulbound', async function () {
 
     let deployDate: Date;
 
-    this.beforeEach(async function () {
+    beforeEach(async function () {
         [deployer, account1, account2] = await ethers.getSigners();
         const contractFactory = new DeadmanSoulbound__factory(deployer);
         contract = await contractFactory.deploy();
@@ -36,6 +36,32 @@ describe('DeadmansSoulbound', async function () {
         it('should set isDead to false, indicating contract owner is alive', async function () {
             const isDead = await contract.isDead();
             expect(isDead).to.be.false;
+        });
+    });
+
+    describe('When declaring the contract Dead', async function () {
+        describe('Before the Time of Death has been reached', async function () {
+            it('should not permit the declaration', async function () {
+                await expect(contract.declareDead()).to.be.revertedWith('Time of Death not yet happened');
+            });
+        });
+
+        describe('After the Time of Death has been reached', async function () {
+            beforeEach(async function () {
+                await ethers.provider.send('evm_increaseTime', [86400 * TEST_DAYS_TO_LIVE]);
+                await ethers.provider.send('evm_mine', []);
+            });
+
+            it('should permit the declaration', async function () {
+                await expect(contract.declareDead()).to.not.reverted;
+                const isDead = await contract.isDead();
+                expect(isDead).to.be.true;
+            });
+
+            it('should revert if the contrat has already been declared Dead', async function () {
+                await expect(contract.declareDead()).to.not.reverted;
+                await expect(contract.declareDead()).to.be.revertedWith('Contract is already Dead');
+            });
         });
     });
 });
