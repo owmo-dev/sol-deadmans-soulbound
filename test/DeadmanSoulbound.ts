@@ -4,7 +4,7 @@ import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 import {DeadmanSoulbound, DeadmanSoulbound__factory} from '../typechain-types';
 import {assert, expect} from 'chai';
 
-const TEST_TOKEN_PRICE = 0.1;
+const TEST_TOKEN_PRICE = ethers.utils.parseEther('0.01');
 const TEST_DAYS_TO_LIVE = 365;
 
 describe('DeadmansSoulbound', async function () {
@@ -18,7 +18,7 @@ describe('DeadmansSoulbound', async function () {
     beforeEach(async function () {
         [deployer, account1, account2] = await ethers.getSigners();
         const contractFactory = new DeadmanSoulbound__factory(deployer);
-        contract = await contractFactory.deploy();
+        contract = await contractFactory.deploy(TEST_TOKEN_PRICE);
         await contract.deployTransaction.wait();
 
         const currentBlock = await ethers.provider.getBlock('latest');
@@ -36,6 +36,11 @@ describe('DeadmansSoulbound', async function () {
         it('should set isDead to false, indicating contract owner is alive', async function () {
             const isDead = await contract.isDead();
             expect(isDead).to.be.false;
+        });
+
+        it('should set the price to mint', async function () {
+            const mintPrice = await contract.mintPrice();
+            expect(mintPrice).to.eq(TEST_TOKEN_PRICE);
         });
     });
 
