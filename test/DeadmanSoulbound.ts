@@ -59,7 +59,34 @@ describe('DeadmansSoulbound', async function () {
 
             it('should revert if the contrat has already been declared Dead', async function () {
                 await expect(contract.declareDead()).to.not.reverted;
-                await expect(contract.declareDead()).to.be.revertedWith('Contract is already Dead');
+                await expect(contract.declareDead()).to.be.revertedWith('Contract is Dead');
+            });
+        });
+    });
+
+    describe('When extending the Time of Death', async function () {
+        it('should revert for anyone other than the contract owner', async function () {
+            await expect(contract.connect(account1).extendLife()).to.be.revertedWith('Ownable: caller is not the owner');
+        });
+
+        describe('When the isDead flag has not yet been declared', async function () {
+            it('should set Time of Death to 1 year from extension block timestamp', async function () {
+                await contract.extendLife();
+                const currentBlock = await ethers.provider.getBlock('latest');
+                const blockDate = new Date(currentBlock.timestamp * 1000);
+                const timeOfDeath = await contract.timeOfDeath();
+                const timeOfDeathDate = new Date(timeOfDeath.toNumber() * 1000);
+                const blockDatePlusOneYear = addDays(blockDate, TEST_DAYS_TO_LIVE);
+                assert.deepEqual(timeOfDeathDate, blockDatePlusOneYear);
+            });
+        });
+
+        describe('When the isDead flag has been declared', async function () {
+            it('should revert because once declared Dead, the contract canont be revived', async function () {
+                await ethers.provider.send('evm_increaseTime', [86400 * TEST_DAYS_TO_LIVE]);
+                await ethers.provider.send('evm_mine', []);
+                await contract.declareDead();
+                await expect(contract.extendLife()).to.be.revertedWith('Contract is Dead');
             });
         });
     });
