@@ -13,12 +13,10 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
 
     bool public isDead;
     uint256 public timeOfDeath;
-    uint256 public mintPrice;
 
-    constructor(uint256 _mintPrice) ERC721('DeadmanSoulbound', 'DSB') {
+    constructor() ERC721('DeadmanSoulbound', 'DSB') {
         isDead = false;
         timeOfDeath = block.timestamp + 365 days;
-        mintPrice = _mintPrice;
     }
 
     function declareDead() public {
