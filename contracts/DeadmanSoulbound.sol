@@ -11,12 +11,13 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
 
     Counters.Counter private _tokenIdCounter;
 
-    bool public isDead;
+    uint256 public timeIncrement;
     uint256 public timeOfDeath;
+    bool public isDead;
 
-    constructor() ERC721('DeadmanSoulbound', 'DSB') {
-        isDead = false;
-        timeOfDeath = block.timestamp + 365 days;
+    constructor(uint256 _timeIncrement) ERC721('DeadmanSoulbound', 'DSB') {
+        setIncrement(_timeIncrement);
+        timeOfDeath = block.timestamp + timeIncrement;
     }
 
     modifier onlyAlive() {
@@ -30,7 +31,7 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
     }
 
     function extendLife() public onlyOwner onlyAlive {
-        timeOfDeath = block.timestamp + 365 days;
+        timeOfDeath = block.timestamp + timeIncrement;
     }
 
     function declareDead() public onlyAlive {
@@ -38,11 +39,16 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
         isDead = true;
     }
 
+    function setIncrement(uint256 _timeIncrement) public onlyOwner onlyAlive {
+        require(_timeIncrement != 0, 'Increment must not be zero');
+        timeIncrement = _timeIncrement;
+    }
+
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(ERC721) onlyDead {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
-    function safeMint(address to, string memory uri) public onlyOwner {
+    function safeMint(address to, string memory uri) public onlyOwner onlyAlive {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
