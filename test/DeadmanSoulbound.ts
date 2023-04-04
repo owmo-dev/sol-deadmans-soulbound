@@ -1,11 +1,11 @@
-import {addDays, secondsInDay} from 'date-fns';
+import {addSeconds, secondsInDay} from 'date-fns';
 import {ethers} from 'hardhat';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 import {DeadmanSoulbound, DeadmanSoulbound__factory} from '../typechain-types';
 import {assert, expect} from 'chai';
 import {BigNumber} from 'ethers';
 
-const TEST_INC_DAYS = 365;
+const TEST_INC_DAYS = 42;
 const TEST_INC_SECONDS = TEST_INC_DAYS * secondsInDay;
 
 const ERR_ONLY_OWNER = 'Ownable: caller is not the owner';
@@ -37,7 +37,7 @@ describe('DeadmansSoulbound', async function () {
         it('should set Time of Death to increment time from deployment', async function () {
             const timeOfDeath = await contract.timeOfDeath();
             const timeOfDeathDate = new Date(timeOfDeath.toNumber() * 1000);
-            const deployDatePlusIncrement = addDays(deployDate, TEST_INC_DAYS);
+            const deployDatePlusIncrement = addSeconds(deployDate, TEST_INC_SECONDS);
             assert.deepEqual(timeOfDeathDate, deployDatePlusIncrement);
         });
 
@@ -90,7 +90,7 @@ describe('DeadmansSoulbound', async function () {
                 const blockDate = new Date(currentBlock.timestamp * 1000);
                 const timeOfDeath = await contract.timeOfDeath();
                 const timeOfDeathDate = new Date(timeOfDeath.toNumber() * 1000);
-                const blockDatePlusIncrement = addDays(blockDate, TEST_INC_DAYS);
+                const blockDatePlusIncrement = addSeconds(blockDate, TEST_INC_SECONDS);
                 assert.deepEqual(timeOfDeathDate, blockDatePlusIncrement);
             });
         });

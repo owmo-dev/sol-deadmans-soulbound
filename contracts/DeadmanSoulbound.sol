@@ -40,7 +40,8 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
     }
 
     function setIncrement(uint256 _timeIncrement) public onlyOwner onlyAlive {
-        require(_timeIncrement != 0, 'Increment must not be zero');
+        require(_timeIncrement >= 1 days, 'DeadmanSoulbound: increment min: 86400 (1 days)');
+        require(_timeIncrement <= 365 days, 'DeadmanSoulbound: increment max: 31536000 (365 days)');
         timeIncrement = _timeIncrement;
     }
 
