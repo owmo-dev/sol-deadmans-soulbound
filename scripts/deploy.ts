@@ -1,21 +1,48 @@
 import {ethers} from 'hardhat';
+import {secondsInDay} from 'date-fns';
+import {DeadmanSoulbound__factory} from '../typechain-types';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 async function main() {
-    const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-    const unlockTime = currentTimestampInSeconds + 60;
+    const args = process.argv;
+    const argv = args.slice(2);
+    if (argv.length <= 0) throw new Error('Missing parameters: increment (days)');
 
-    const lockedAmount = ethers.utils.parseEther('0.001');
+    const days = parseFloat(argv[0]);
+    console.log(days);
 
-    const Lock = await ethers.getContractFactory('Lock');
-    const lock = await Lock.deploy(unlockTime, {value: lockedAmount});
+    if (days === 0 || days > 365) throw new Error('Increment (days) must be greater than 0 and less than or equal to 365');
 
-    await lock.deployed();
+    const incrementSeconds = days * secondsInDay;
 
-    console.log(`Lock with ${ethers.utils.formatEther(lockedAmount)}ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+    const network = 'goerli';
+
+    console.log(`Deploy: DeadmanSoulbound to ${network}...`);
+
+    const privateKey = process.env.PRIVATE_KEY;
+    if (!privateKey || privateKey.length <= 0) throw new Error('Missing environment: private key');
+
+    const wallet = new ethers.Wallet(privateKey);
+    console.log(`> connected to the wallet address ${wallet.address}`);
+
+    let provider;
+    provider = new ethers.providers.InfuraProvider(network, process.env.INFURA_API_KEY);
+
+    const signer = wallet.connect(provider);
+
+    console.log(`> deploying contract with increment set to ${days} days`);
+
+    let timeIncrement = ethers.BigNumber.from(incrementSeconds);
+
+    const contractFactory = new DeadmanSoulbound__factory(signer);
+    const contract = await contractFactory.deploy(timeIncrement);
+    const tx = await contract.deployTransaction.wait();
+
+    console.log(`> DeadmanSoulbound deployed at ${tx.contractAddress}`);
+    console.log(tx);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch(error => {
     console.error(error);
     process.exitCode = 1;

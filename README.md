@@ -15,3 +15,9 @@ Periodically, the contract Owner must extend the life of the contract before it 
 ### Death
 
 Anyone may declare the contract dead so long as the time of death has been met. The Owner will no longer be able to mint tokens and owned tokens may be traded freely.
+
+## Scripts
+
+Deploy
+
+`yarn run ts-node --files .\scripts\deploy.ts <days:float>`
