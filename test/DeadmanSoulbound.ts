@@ -14,6 +14,8 @@ const ERR_ONLY_OWNER = 'Ownable: caller is not the owner';
 const ERR_ONLY_ALIVE = 'DeadmanSoulbound: contract is dead';
 const ERR_ONLY_DEAD = 'DeadmanSoulbound: contract must be dead';
 const ERR_NOT_YET = 'DeadmanSoulbound: not yet Time of Death';
+const ERR_GT_ZERO = 'DeadmanSoulbound: must be greater than zero';
+const ERR_LT_MAX = 'DeadmanSoulbound: max value is 31536000';
 
 async function mineToAfterDeathDate() {
     await ethers.provider.send('evm_increaseTime', [86400 * TEST_INC_DAYS]);
@@ -81,6 +83,17 @@ describe('DeadmansSoulbound', async function () {
             await contract.setIncrement(newIncrementBN);
             const increment = await contract.timeIncrement();
             expect(increment).to.eq(newIncrementBN);
+        });
+
+        it('should revert increment if requesting zero', async function () {
+            const newIncrementBN = ethers.BigNumber.from(0);
+            await expect(contract.setIncrement(newIncrementBN)).to.be.revertedWith(ERR_GT_ZERO);
+        });
+
+        it('should revert increment if requesting greater than a year', async function () {
+            const newIncrement = 365 * secondsInDay + 1;
+            const newIncrementBN = ethers.BigNumber.from(newIncrement);
+            await expect(contract.setIncrement(newIncrementBN)).to.be.revertedWith(ERR_LT_MAX);
         });
 
         it('should revert new increment calls from anyone other than owner', async function () {

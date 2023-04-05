@@ -31,7 +31,7 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
     /**
      * @notice Initializes contract.
      * @param _timeIncrement sets default time of death and increment
-     * @dev _timeIncrement should be set to the maximum value (31536000)
+     * @dev _timeIncrement should be set to the maximum value (365 days)
      * to have a sufficiently large window between life extension calls
      */
     constructor(uint256 _timeIncrement) ERC721('DeadmanSoulbound', 'DSB') {
@@ -58,8 +58,8 @@ contract DeadmanSoulbound is ERC721, ERC721URIStorage, Ownable {
 
     /// @notice Sets the increment value used when extending life of the contract
     function setIncrement(uint256 _timeIncrement) public onlyOwner onlyAlive {
-        require(_timeIncrement >= 1 days, 'DeadmanSoulbound: increment min: 86400 (1 days)');
-        require(_timeIncrement <= 365 days, 'DeadmanSoulbound: increment max: 31536000 (365 days)');
+        require(_timeIncrement > 0, 'DeadmanSoulbound: must be greater than zero');
+        require(_timeIncrement <= 365 days, 'DeadmanSoulbound: max value is 31536000');
         timeIncrement = _timeIncrement;
     }
 
