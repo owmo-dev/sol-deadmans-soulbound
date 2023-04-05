@@ -840,7 +840,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nomiclabs/hardhat-etherscan@npm:^3.0.0":
+"@nomiclabs/hardhat-etherscan@npm:^3.1.7":
   version: 3.1.7
   resolution: "@nomiclabs/hardhat-etherscan@npm:3.1.7"
   dependencies:
@@ -5967,7 +5967,7 @@ __metadata:
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.0
     "@nomicfoundation/hardhat-toolbox": ^2.0.0
     "@nomiclabs/hardhat-ethers": ^2.0.0
-    "@nomiclabs/hardhat-etherscan": ^3.0.0
+    "@nomiclabs/hardhat-etherscan": ^3.1.7
     "@openzeppelin/contracts": ^4.8.2
     "@typechain/ethers-v5": ^10.1.0
     "@typechain/hardhat": ^6.1.2

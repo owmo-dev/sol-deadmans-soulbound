@@ -7,7 +7,7 @@ dotenv.config();
 async function main() {
     const args = process.argv;
     const argv = args.slice(2);
-    if (argv.length <= 0) throw new Error('Missing parameters: increment (days)');
+    if (argv.length != 1) throw new Error('Missing parameter: increment in days (float)');
 
     const days = parseFloat(argv[0]);
     console.log(days);
