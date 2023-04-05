@@ -1,5 +1,5 @@
-import {addSeconds, secondsInDay} from 'date-fns';
 import {ethers} from 'hardhat';
+import {addSeconds, secondsInDay} from 'date-fns';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 import {DeadmanSoulbound, DeadmanSoulbound__factory} from '../typechain-types';
 import {assert, expect} from 'chai';
@@ -24,13 +24,14 @@ describe('DeadmansSoulbound', async function () {
     let deployer: SignerWithAddress;
     let account1: SignerWithAddress;
     let account2: SignerWithAddress;
+    let marketplace: SignerWithAddress;
     let contract: DeadmanSoulbound;
 
     let deployDate: Date;
     let timeIncrement: BigNumber;
 
     beforeEach(async function () {
-        [deployer, account1, account2] = await ethers.getSigners();
+        [deployer, account1, account2, marketplace] = await ethers.getSigners();
         const contractFactory = new DeadmanSoulbound__factory(deployer);
         timeIncrement = ethers.BigNumber.from(TEST_INC_SECONDS);
         contract = await contractFactory.deploy(timeIncrement);
@@ -88,6 +89,32 @@ describe('DeadmansSoulbound', async function () {
             await expect(contract.connect(account1).setIncrement(newIncrementBN)).to.be.revertedWith(ERR_ONLY_OWNER);
         });
 
+        it('should allow contract owner to safeMint NFTs to addresses', async function () {
+            await contract.safeMint(account1.address, TEST_IPFS_URI);
+            const balance = await contract.balanceOf(account1.address);
+            const ownerOf = await contract.ownerOf(0);
+            const uri = await contract.tokenURI(0);
+            expect(balance).to.eq(1);
+            expect(ownerOf).to.eq(account1.address);
+            expect(uri).to.eq(TEST_IPFS_URI);
+        });
+
+        it('should revert any safeMint calls from anyone other than owner', async function () {
+            await expect(contract.connect(account1).safeMint(account1.address, TEST_IPFS_URI)).to.be.revertedWith(ERR_ONLY_OWNER);
+        });
+
+        it('should revert a transfer between wallets', async function () {
+            await contract.safeMint(account1.address, TEST_IPFS_URI);
+            await contract.connect(account1).approve(account2.address, 0);
+            await expect(contract.connect(account1).transferFrom(account1.address, account2.address, 0)).to.be.revertedWith(ERR_ONLY_DEAD);
+        });
+
+        it('should revert a marketplace transfer between wallets', async function () {
+            await contract.safeMint(account1.address, TEST_IPFS_URI);
+            await contract.connect(account1).setApprovalForAll(marketplace.address, true);
+            await expect(contract.connect(marketplace).transferFrom(account1.address, account2.address, 0)).to.be.revertedWith(ERR_ONLY_DEAD);
+        });
+
         describe('Before the Time of Death has been reached', async function () {
             it('should not allow the contract to be declared dead', async function () {
                 await expect(contract.declareDead()).to.be.revertedWith(ERR_NOT_YET);
@@ -125,6 +152,10 @@ describe('DeadmansSoulbound', async function () {
             const newIncrement = 365 * secondsInDay;
             const newIncrementBN = ethers.BigNumber.from(newIncrement);
             await expect(contract.setIncrement(newIncrementBN)).to.be.revertedWith(ERR_ONLY_ALIVE);
+        });
+
+        it('should revert safeMint calls', async function () {
+            await expect(contract.safeMint(account1.address, TEST_IPFS_URI)).to.be.revertedWith(ERR_ONLY_ALIVE);
         });
     });
 });
