@@ -18,9 +18,9 @@ Anyone may declare the contract dead so long as the time of death has been met. 
 
 ## Scripts
 
-Deploy
+### Deploy & Verify on Etherscan
 
-`yarn run ts-node --files .\scripts\deploy.ts <days:float>`
+`npx hardhat run scripts/deploy.ts --network goerli`
 
 Mint
 

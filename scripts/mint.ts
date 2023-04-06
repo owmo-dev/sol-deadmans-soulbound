@@ -1,7 +1,8 @@
 import {ethers} from 'hardhat';
 import {getSignerFromPrivateWalletKey} from './utils';
-import * as dotenv from 'dotenv';
 import {DeadmanSoulbound__factory} from '../typechain-types';
+
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 async function main() {

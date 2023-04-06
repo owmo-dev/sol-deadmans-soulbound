@@ -1,36 +1,27 @@
-import {ethers} from 'hardhat';
 import {secondsInDay} from 'date-fns';
-import {DeadmanSoulbound__factory} from '../typechain-types';
-import {getSignerFromPrivateWalletKey} from './utils';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import {ethers, network, run} from 'hardhat';
+
+const TIME_INCREMENT_DAYS = 1; // (>0 && <= 365)
 
 async function main() {
-    const args = process.argv;
-    const argv = args.slice(2);
-    if (argv.length != 1) throw new Error('Missing parameter: increment in days (float)');
+    console.log(`DEPLOY: DeadmanSoulbound --> ${network.name}`);
 
-    const days = parseFloat(argv[0]);
-    console.log(days);
+    const TIME_INCEMENT = TIME_INCREMENT_DAYS * secondsInDay;
 
-    if (days === 0 || days > 365) throw new Error('Increment (days) must be greater than 0 and less than or equal to 365');
+    const contractFactory = await ethers.getContractFactory('DeadmanSoulbound');
+    const contract = await contractFactory.deploy(TIME_INCEMENT);
 
-    const incrementSeconds = days * secondsInDay;
+    const WAIT_BLOCK_CONFIRMATIONS = 6;
+    await contract.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS);
 
-    const network = 'goerli';
-    const signer = getSignerFromPrivateWalletKey(network);
-    console.log(`Deploy: DeadmanSoulbound to ${network}...`);
+    console.log(`Contract deployed to ${contract.address} on ${network.name}`);
 
-    let timeIncrement = ethers.BigNumber.from(incrementSeconds);
+    console.log(`Verifying contract on Etherscan...`);
 
-    console.log(`> deploying contract with increment set to ${days} days`);
-
-    const contractFactory = new DeadmanSoulbound__factory(signer);
-    const contract = await contractFactory.deploy(timeIncrement);
-    const tx = await contract.deployTransaction.wait();
-
-    console.log(`> DeadmanSoulbound deployed at ${tx.contractAddress}`);
-    console.log(tx);
+    await run(`verify:verify`, {
+        address: contract.address,
+        constructorArguments: [TIME_INCEMENT],
+    });
 }
 
 main().catch(error => {
