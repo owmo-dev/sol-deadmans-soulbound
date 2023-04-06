@@ -1,0 +1,15 @@
+{
+    "name": "Deadman's Soulbound PFP",
+    "created_by": "Owen Moore",
+    "description": "Experiment in creating a Deadman's Soulbound NFT contract, as part of Encode Club's Solidity Bootcamp",
+    "attributes": [{"trait_type": "Artist", "value": "Owen Moore"}],
+    "image_details": {
+        "bytes": 7590524,
+        "format": "PNG",
+        "sha256": "acfc41754149a0a87410da67d518ef0a1fe26407a02fe808678b20a006ec48b4",
+        "width": 2048,
+        "height": 2048
+    },
+    "image": "https://arweave.net/Szxu09-tX6KauK8C2QLUsrWh6EChFZfAUf4fbYV1KW8",
+    "image_url": "https://arweave.net/Szxu09-tX6KauK8C2QLUsrWh6EChFZfAUf4fbYV1KW8"
+}

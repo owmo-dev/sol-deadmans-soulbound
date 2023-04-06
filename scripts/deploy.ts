@@ -1,21 +1,29 @@
-import {ethers} from 'hardhat';
+import {secondsInDay} from 'date-fns';
+import {ethers, network, run} from 'hardhat';
+
+const TIME_INCREMENT_DAYS = 1; // (>0 && <= 365)
 
 async function main() {
-    const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-    const unlockTime = currentTimestampInSeconds + 60;
+    console.log(`DEPLOY: DeadmanSoulbound --> ${network.name}`);
 
-    const lockedAmount = ethers.utils.parseEther('0.001');
+    const TIME_INCEMENT = TIME_INCREMENT_DAYS * secondsInDay;
 
-    const Lock = await ethers.getContractFactory('Lock');
-    const lock = await Lock.deploy(unlockTime, {value: lockedAmount});
+    const contractFactory = await ethers.getContractFactory('DeadmanSoulbound');
+    const contract = await contractFactory.deploy(TIME_INCEMENT);
 
-    await lock.deployed();
+    const WAIT_BLOCK_CONFIRMATIONS = 6;
+    await contract.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS);
 
-    console.log(`Lock with ${ethers.utils.formatEther(lockedAmount)}ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+    console.log(`Contract deployed to ${contract.address} on ${network.name}`);
+
+    console.log(`Verifying contract on Etherscan...`);
+
+    await run(`verify:verify`, {
+        address: contract.address,
+        constructorArguments: [TIME_INCEMENT],
+    });
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch(error => {
     console.error(error);
     process.exitCode = 1;
