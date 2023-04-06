@@ -1,33 +1,28 @@
-import {ethers} from 'hardhat';
-import {getSignerFromPrivateWalletKey} from './utils';
-import {DeadmanSoulbound__factory} from '../typechain-types';
-
+import {ethers, network} from 'hardhat';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-async function main() {
-    const args = process.argv;
-    const argv = args.slice(2);
-    if (argv.length != 3) throw new Error('Missing parameters: <contract_address:string> <to_address:string> <ifps_url:string>');
+const CONTRACT_ADDRESS = process.env.DEPLOYED_CONTRACT_ADDRESS;
+const MINT_TO_ADDRESS = process.env.MINT_TO_ADDRESS;
+const IPFS_URL = process.env.IPFS_URL;
 
-    let contractAddress = argv[0];
+async function main() {
+    let contractAddress = `${CONTRACT_ADDRESS}`;
     if (!ethers.utils.isAddress(contractAddress)) throw new Error(`Not a valid Address: ${contractAddress}`);
 
-    let toAddress = argv[1];
-    if (!ethers.utils.isAddress(toAddress)) throw new Error(`Not a valid Address: ${toAddress}`);
+    let mintToAddress = `${MINT_TO_ADDRESS}`;
+    if (!ethers.utils.isAddress(mintToAddress)) throw new Error(`Not a valid Address: ${mintToAddress}`);
 
-    let ipfsUrl = argv[2];
+    let ipfsUrl = `${IPFS_URL}`;
     if (ipfsUrl.length !== 66 || !ipfsUrl.includes('ipfs://')) throw new Error(`Not a valid "ipfs://<hahs> url: ${ipfsUrl}`);
 
-    const network = 'goerli';
-    const signer = getSignerFromPrivateWalletKey(network);
-    console.log(`Mint: DeadmanSoulbound NFT to ${toAddress} on ${network}...`);
+    console.log(`MINT: DeadmanSoulbound NFT --> ${network.name}`);
 
-    const contractFactory = new DeadmanSoulbound__factory(signer);
+    const contractFactory = await ethers.getContractFactory('DeadmanSoulbound');
     const contract = contractFactory.attach(contractAddress);
-    const tx = await contract.safeMint(toAddress, ipfsUrl);
-    console.log(`> Minted token to ${toAddress}`);
-    console.log(tx);
+    const tx = await contract.safeMint(mintToAddress, ipfsUrl);
+
+    console.log(`TX sent: ${tx.hash}`);
 }
 
 main().catch(error => {

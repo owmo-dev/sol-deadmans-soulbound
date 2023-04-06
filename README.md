@@ -1,20 +1,14 @@
 # sol-deadmans-soulbound
 
-Experiment in extending a typical ERC721 contract with storage into one that mints soulbound tokens, but allows a "deadman's switch" type mechanism wherein the contract can be declared "dead" and thus permitting token transfers again. Developed as part of the Encode Club Solidity Bootcamp, this contract is my final project. Please evaluate this contract carefully if deploying / referencing it.
+Experiment in extending a typical ERC721 contract with storage into one that mints soulbound tokens, but allows a "deadman's switch" type mechanism wherein the contract can be declared "dead" and thus permitting token transfers again. Developed as a final study project for the Encode Club Solidity Bootcamp. Please only consider this code as conceptual in nature and **DO NOT** use it in production; it is a publicly shared study.
 
-## Lifecycle
+## Contract Lifecycle
 
-### Birth
+**Birth** - Upon deployment, an initial time of death is set and the contract owner can mint soulbound NFTs to wallets.
 
-At the time of deployment, an initial time until death is set and the contract Owner can mint soulbound NFTs to wallets of their choosing.
+**Life** - Contract owner can extend life of the contract so long as it has not been declared dead and continue to mint NFTs.
 
-### Life
-
-Periodically, the contract Owner must extend the life of the contract before it has been decalred dead.
-
-### Death
-
-Anyone may declare the contract dead so long as the time of death has been met. The Owner will no longer be able to mint tokens and owned tokens may be traded freely.
+**Death** - Anyone may declare the contract dead should the time of death be met. Transfers may happen, but NFTs minting stops.
 
 ## Scripts
 
@@ -22,6 +16,6 @@ Anyone may declare the contract dead so long as the time of death has been met. 
 
 `npx hardhat run scripts/deploy.ts --network goerli`
 
-Mint
+### Mint NFT to Address
 
-`yarn run ts-node --files .\scripts\deploy.ts <contract_address:string> <to_address:string> <ifps_url:string>`
+`npx hardhat run scripts/mint.ts --network goerli`
