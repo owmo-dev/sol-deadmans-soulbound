@@ -1,6 +1,7 @@
 import {ethers} from 'hardhat';
 import {secondsInDay} from 'date-fns';
 import {DeadmanSoulbound__factory} from '../typechain-types';
+import {getSignerFromPrivateWalletKey} from './utils';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -17,23 +18,12 @@ async function main() {
     const incrementSeconds = days * secondsInDay;
 
     const network = 'goerli';
-
+    const signer = getSignerFromPrivateWalletKey(network);
     console.log(`Deploy: DeadmanSoulbound to ${network}...`);
 
-    const privateKey = process.env.PRIVATE_KEY;
-    if (!privateKey || privateKey.length <= 0) throw new Error('Missing environment: private key');
-
-    const wallet = new ethers.Wallet(privateKey);
-    console.log(`> connected to the wallet address ${wallet.address}`);
-
-    let provider;
-    provider = new ethers.providers.InfuraProvider(network, process.env.INFURA_API_KEY);
-
-    const signer = wallet.connect(provider);
+    let timeIncrement = ethers.BigNumber.from(incrementSeconds);
 
     console.log(`> deploying contract with increment set to ${days} days`);
-
-    let timeIncrement = ethers.BigNumber.from(incrementSeconds);
 
     const contractFactory = new DeadmanSoulbound__factory(signer);
     const contract = await contractFactory.deploy(timeIncrement);

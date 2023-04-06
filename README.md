@@ -21,3 +21,7 @@ Anyone may declare the contract dead so long as the time of death has been met. 
 Deploy
 
 `yarn run ts-node --files .\scripts\deploy.ts <days:float>`
+
+Mint
+
+`yarn run ts-node --files .\scripts\deploy.ts <contract_address:string> <to_address:string> <ifps_url:string>`
